@@ -4,7 +4,7 @@ A Twatch face that uses fonts.
 This face was built with CloudPebble,
 to make it easier for people to fork the code.
 
-Copyright © 2015 Neale Pickett <neale@woozle.org>
+Copyright © 2015 Neale Pickett <neale@woozle.org>  
 Distributed under an [MIT License](LICENSE.md).
 
 
