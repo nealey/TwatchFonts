@@ -68,8 +68,10 @@ static void main_window_load(Window *window) {
 }
 
 static void restore() {
-  int sel_theme = 0;
   int sel_font = 0;
+  uint32_t color_bg = 0x000000;
+  uint32_t color_date = 0xffffff;
+  uint32_t color_time = 0xffffff;
   
   int i;
   for (i = 0; i < KEY_LAST; i += 1) {
@@ -78,19 +80,25 @@ static void restore() {
     }
     
     switch (i) {
-    case KEY_THEME:
-      sel_theme = persist_read_int(i);
-      break;
     case KEY_FONT:
       sel_font = persist_read_int(i);
       break;
+    case KEY_COLOR_BG:
+      color_bg = persist_read_int(i);
+      break;
+    case KEY_COLOR_DATE:
+      color_date = persist_read_int(i);
+      break;
+    case KEY_COLOR_TIME:
+      color_time = persist_read_int(i);
+      break;      
     }
   }
   
-  window_set_background_color(s_main_window, *themes[sel_theme][0]);
-  text_layer_set_text_color(s_date_layer, *themes[sel_theme][1]);
-  text_layer_set_text_color(s_time_layer, *themes[sel_theme][2]);
-  text_layer_set_text_color(s_alert_layer, *themes[sel_theme][2]);
+  window_set_background_color(s_main_window, GColorFromHEX(color_bg));
+  text_layer_set_text_color(s_date_layer, GColorFromHEX(color_date));
+  text_layer_set_text_color(s_time_layer, GColorFromHEX(color_time));
+  text_layer_set_text_color(s_alert_layer, GColorFromHEX(color_time));
   
   text_layer_set_font(s_date_layer, fonts_load_custom_font(resource_get_handle(fonts[sel_font][0])));
   text_layer_set_font(s_time_layer, fonts_load_custom_font(resource_get_handle(fonts[sel_font][1])));
@@ -107,6 +115,7 @@ static void in_received_handler(DictionaryIterator *rec, void *context) {
       continue;
     }
 
+    // They're all ints! Yay!
     persist_write_int(i, cur->value->int32);
   }
   

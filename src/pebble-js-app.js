@@ -18,23 +18,23 @@ Pebble.addEventListener("showConfiguration", function() {
   Pebble.openURL('http://woozle.org/neale/misc/twatch-config/fonts.html');
 });
 
-var themes = {"Dark": 0,
-              "Light": 1,
-              "Green": 2};
-var aligns = {"Left": 0,
-              "Center": 1,
-              "Right": 2};
 var fonts = {"Helvetica": 0,
              "Avería": 1,
              "Ubuntu": 2};
 
 Pebble.addEventListener("webviewclosed", function(e) {
-  console.log("configuration closed");
+  console.log("configuration closed:" + decodeURIComponent(e.response));
   // webview closed
   var options = JSON.parse(decodeURIComponent(e.response));
-  options.theme = themes[options.theme];
-  options.align = aligns[options.align];
-  options.font = fonts[options.font];
-  console.log("Options = " + options.theme + options.align + options.font);
-  Pebble.sendAppMessage(options, appMessageAck, appMessageNak);
+  var colors = options.theme.split(",");
+  var out = {};
+  console.log(options.theme);
+  
+  out.color_bg = parseInt(colors[0], 16);
+  out.color_date = parseInt(colors[1], 16);
+  out.color_time = parseInt(colors[2], 16);
+  out.font = fonts[options.font];
+  
+  console.log(colors[1], out.color_date);
+  Pebble.sendAppMessage(out, appMessageAck, appMessageNak);
 });
