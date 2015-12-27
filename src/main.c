@@ -141,8 +141,13 @@ static void init() {
   window_stack_push(s_main_window, true);
 
   tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
+  
+#ifdef PBL_ROUND
+  bt_connected = true;
+#else
   bluetooth_connection_service_subscribe(bt_handler);
   bt_connected = bluetooth_connection_service_peek();
+#endif
   
   app_message_register_inbox_received(in_received_handler);
   app_message_register_inbox_dropped(in_dropped_handler);
