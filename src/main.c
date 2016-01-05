@@ -1,19 +1,32 @@
 #include <pebble.h>
 #include "settings.h"
  
-static Window *s_main_window;
-static TextLayer *s_date_layer, *s_time_layer, *s_alert_layer;
+Window *s_main_window;
+Layer *main_layer;
+TextLayer *s_date_layer, *s_time_layer, *s_alert_layer;
 bool bt_connected = false;
+struct tm now;
+
+int sel_font = 0;
+uint32_t color_bg = 0x000000;
+uint32_t color_date = 0xffffff;
+uint32_t color_time = 0xffffff;
+  
 
 static void bt_handler(bool connected) {
   bt_connected = connected;
+#ifndef PBL_ROUND
   if (! bt_connected) {
     vibes_double_pulse();
   }
-  layer_mark_dirty(text_layer_get_layer(s_alert_layer));
+#endif
+  layer_mark_dirty(main_layer);
 }
 
-static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
+static void window_update_proc(Layer *layer, GContext *ctx) {
+  graphics_context_set_fill_color(ctx, GColorFromHEX(color_bg));
+  graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
+
   // Need to be static because they're used by the system later.
   static char s_time_text[] = "00:00";
   static char s_date_text[] = "00 Çêû";
@@ -26,20 +39,25 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
   }
   
   // Date
-  strftime(s_date_text, sizeof(s_date_text), "%d %b", tick_time);
+  strftime(s_date_text, sizeof(s_date_text), "%d %b", &now);
   text_layer_set_text(s_date_layer, NOZERO(s_date_text));
 
   // Time
   if (clock_is_24h_style()) {
-    strftime(s_time_text, sizeof(s_time_text), "%R", tick_time);
+    strftime(s_time_text, sizeof(s_time_text), "%R", &now);
   } else {
-    strftime(s_time_text, sizeof(s_time_text), "%I:%M", tick_time);
+    strftime(s_time_text, sizeof(s_time_text), "%I:%M", &now);
   }
   text_layer_set_text(s_time_layer, NOZERO(s_time_text));
 }
 
+static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
+  now = *tick_time;
+  layer_mark_dirty(main_layer);
+}
+
 static void main_window_load(Window *window) {
-  Layer *window_layer = window_get_root_layer(window);
+  main_layer = window_get_root_layer(window);
 
 #ifdef PBL_RECT
   s_date_layer = text_layer_create(GRect(8, 66, 128, 100));
@@ -57,22 +75,19 @@ static void main_window_load(Window *window) {
 #endif
 
   text_layer_set_background_color(s_date_layer, GColorClear);
-  layer_add_child(window_layer, text_layer_get_layer(s_date_layer));
+  layer_add_child(main_layer, text_layer_get_layer(s_date_layer));
 
   text_layer_set_background_color(s_time_layer, GColorClear);
-  layer_add_child(window_layer, text_layer_get_layer(s_time_layer));
+  layer_add_child(main_layer, text_layer_get_layer(s_time_layer));
   
   text_layer_set_background_color(s_alert_layer, GColorClear);
   text_layer_set_font(s_alert_layer, fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SYMBOLS_52)));
-  layer_add_child(window_layer, text_layer_get_layer(s_alert_layer));
+  layer_add_child(main_layer, text_layer_get_layer(s_alert_layer));
+  
+  layer_set_update_proc(main_layer, window_update_proc);
 }
 
 static void restore() {
-  int sel_font = 0;
-  uint32_t color_bg = 0x000000;
-  uint32_t color_date = 0xffffff;
-  uint32_t color_time = 0xffffff;
-  
   int i;
   for (i = 0; i < KEY_LAST; i += 1) {
     if (! persist_exists(i)) {
@@ -95,13 +110,14 @@ static void restore() {
     }
   }
   
-  window_set_background_color(s_main_window, GColorFromHEX(color_bg));
   text_layer_set_text_color(s_date_layer, GColorFromHEX(color_date));
   text_layer_set_text_color(s_time_layer, GColorFromHEX(color_time));
   text_layer_set_text_color(s_alert_layer, GColorFromHEX(color_time));
   
   text_layer_set_font(s_date_layer, fonts_load_custom_font(resource_get_handle(fonts[sel_font][0])));
   text_layer_set_font(s_time_layer, fonts_load_custom_font(resource_get_handle(fonts[sel_font][1])));
+  
+  layer_mark_dirty(main_layer);
 }
 
 static void in_received_handler(DictionaryIterator *rec, void *context) {
@@ -142,12 +158,8 @@ static void init() {
 
   tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
   
-#ifdef PBL_ROUND
-  bt_connected = true;
-#else
   bluetooth_connection_service_subscribe(bt_handler);
   bt_connected = bluetooth_connection_service_peek();
-#endif
   
   app_message_register_inbox_received(in_received_handler);
   app_message_register_inbox_dropped(in_dropped_handler);
