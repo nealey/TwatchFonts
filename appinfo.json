@@ -9,6 +9,7 @@
         "configurable"
     ],
     "companyName": "dartcatcher@gmail.com",
+    "enableMultiJS": false,
     "longName": "Twatch Fonts",
     "projectType": "native",
     "resources": {
@@ -115,7 +116,7 @@
         "chalk"
     ],
     "uuid": "2dce4324-374b-4e5e-9b98-3275561118f3",
-    "versionLabel": "1.3",
+    "versionLabel": "1.4",
     "watchapp": {
         "watchface": true
     }
