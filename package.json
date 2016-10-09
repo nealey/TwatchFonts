@@ -1,0 +1,131 @@
+{
+    "author": "dartcatcher@gmail.com",
+    "dependencies": {},
+    "keywords": [],
+    "name": "twatch-fonts",
+    "pebble": {
+        "capabilities": [
+            "configurable"
+        ],
+        "displayName": "Twatch Fonts",
+        "enableMultiJS": false,
+        "messageKeys": {
+            "color_bg": 1,
+            "color_date": 2,
+            "color_time": 3,
+            "font": 0
+        },
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "file": "images/icon.png",
+                    "menuIcon": true,
+                    "name": "ICON",
+                    "targetPlatforms": null,
+                    "type": "bitmap"
+                },
+                {
+                    "characterRegex": "[\uf10b]",
+                    "file": "fonts/fontawesome.ttf",
+                    "name": "FONT_SYMBOLS_52",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9A-Za-z\u00e9\u00f4 ]",
+                    "file": "fonts/Ubuntu-Regular.ttf",
+                    "name": "FONT_UBUNTU_R_28",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9:]",
+                    "file": "fonts/Ubuntu-Bold.ttf",
+                    "name": "FONT_UBUNTU_B_64",
+                    "targetPlatforms": [
+                        "chalk"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9:]",
+                    "file": "fonts/Ubuntu-Bold.ttf",
+                    "name": "FONT_UBUNTU_B_48",
+                    "targetPlatforms": [
+                        "aplite",
+                        "basalt",
+                        "diorite"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9A-Za-z\u00e9\u00f4 ]",
+                    "file": "fonts/Helvetica-Regular.ttf",
+                    "name": "FONT_HELVETICA_R_28",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9:]",
+                    "file": "fonts/Helvetica-Bold.ttf",
+                    "name": "FONT_HELVETICA_B_64",
+                    "targetPlatforms": [
+                        "chalk"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9:]",
+                    "file": "fonts/Helvetica-Bold.ttf",
+                    "name": "FONT_HELVETICA_B_48",
+                    "targetPlatforms": [
+                        "aplite",
+                        "basalt",
+                        "diorite"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9A-Za-z\u00e9\u00f4 ]",
+                    "file": "fonts/AveriaSerif-Regular.ttf",
+                    "name": "FONT_AVERIA_R_28",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9:]",
+                    "file": "fonts/AveriaSerif-Bold.ttf",
+                    "name": "FONT_AVERIA_B_64",
+                    "targetPlatforms": [
+                        "chalk"
+                    ],
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9:]",
+                    "file": "fonts/AveriaSerif-Bold.ttf",
+                    "name": "FONT_AVERIA_B_48",
+                    "targetPlatforms": [
+                        "aplite",
+                        "basalt",
+                        "diorite"
+                    ],
+                    "type": "font"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "aplite",
+            "basalt",
+            "chalk",
+            "diorite"
+        ],
+        "uuid": "2dce4324-374b-4e5e-9b98-3275561118f3",
+        "watchapp": {
+            "watchface": true
+        }
+    },
+    "version": "1.5.0"
+}

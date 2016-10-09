@@ -11,15 +11,17 @@ int sel_font = 0;
 uint32_t color_bg = 0x000000;
 uint32_t color_date = 0xffffff;
 uint32_t color_time = 0xffffff;
+
+#define TIME_H PBL_IF_RECT_ELSE(48, 64)
+#define DATE_H 28
+#define ICON_H 52
   
 
 static void bt_handler(bool connected) {
   bt_connected = connected;
-#ifndef PBL_ROUND
   if (! bt_connected) {
     vibes_double_pulse();
   }
-#endif
   layer_mark_dirty(main_layer);
 }
 
@@ -56,23 +58,51 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
   layer_mark_dirty(main_layer);
 }
 
-static void main_window_load(Window *window) {
-  main_layer = window_get_root_layer(window);
+static void reposition(GRect bounds) {
+  int16_t bottom = bounds.origin.y + bounds.size.h;
+  int16_t margin_b = TIME_H + bounds.size.h/6;
+  int16_t margin_l = 7;
+  GRect r;
+  Layer *l;
+  
+  r.origin.x = bounds.origin.x + margin_l;
+  r.origin.y = PBL_IF_RECT_ELSE(bottom - margin_b, (bottom - TIME_H)/2 - 10);
+  r.size.w = bounds.size.w - margin_l * 2;
+  r.size.h = TIME_H * 5 / 4;
+  
+  // Time
+  l = text_layer_get_layer(s_time_layer);
+  layer_set_frame(l, r);
+  layer_mark_dirty(l);
+  
+  // Date
+  l = text_layer_get_layer(s_date_layer);
+  r.origin.y -= 26;
+  r.origin.x += 1;
+  r.size.w -= 2;
+  layer_set_frame(l, r);
+  layer_mark_dirty(l);
+  
+  // Alert
+  l = text_layer_get_layer(s_alert_layer);
+  r.origin.y = PBL_IF_RECT_ELSE(margin_l, bottom - ICON_H - margin_b);
+  layer_set_frame(l, r);
+  layer_mark_dirty(l);
+}
 
-#ifdef PBL_RECT
-  s_date_layer = text_layer_create(GRect(8, 66, 128, 100));
-  s_time_layer = text_layer_create(GRect(7, 92, 130, 76));
-  s_alert_layer = text_layer_create(GRect(110, 7, 52, 52));
-  text_layer_set_text_alignment(s_date_layer, GTextAlignmentLeft);
-  text_layer_set_text_alignment(s_time_layer, GTextAlignmentLeft);  
-#else
-  s_date_layer = text_layer_create(GRect(0, 20, 180, 100));
-  s_time_layer = text_layer_create(GRect(0, 48, 180, 76));
-  s_alert_layer = text_layer_create(GRect(0, 120, 180, 52));
-  text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
-  text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);  
-  text_layer_set_text_alignment(s_alert_layer, GTextAlignmentCenter);  
-#endif
+static void main_window_load(Window *window) {
+  GRect main_frame;
+  
+  main_layer = window_get_root_layer(window);
+  main_frame = layer_get_frame(main_layer);
+
+  s_date_layer = text_layer_create(main_frame);
+  s_time_layer = text_layer_create(main_frame);
+  s_alert_layer = text_layer_create(main_frame);
+  text_layer_set_text_alignment(s_date_layer, PBL_IF_RECT_ELSE(GTextAlignmentLeft, GTextAlignmentCenter));
+  text_layer_set_text_alignment(s_time_layer, PBL_IF_RECT_ELSE(GTextAlignmentLeft, GTextAlignmentCenter));
+  text_layer_set_text_alignment(s_alert_layer, PBL_IF_RECT_ELSE(GTextAlignmentRight, GTextAlignmentCenter));
+  reposition(main_frame);
 
   text_layer_set_background_color(s_date_layer, GColorClear);
   layer_add_child(main_layer, text_layer_get_layer(s_date_layer));
@@ -109,6 +139,7 @@ static void restore() {
       break;      
     }
   }
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "%x %06lx %06lx %06lx", sel_font, color_bg, color_date, color_time);
   
   text_layer_set_text_color(s_date_layer, GColorFromHEX(color_date));
   text_layer_set_text_color(s_time_layer, GColorFromHEX(color_time));
@@ -118,6 +149,10 @@ static void restore() {
   text_layer_set_font(s_time_layer, fonts_load_custom_font(resource_get_handle(fonts[sel_font][1])));
   
   layer_mark_dirty(main_layer);
+}
+
+static void unobstructedAreaWillChange(GRect final_unobstructed_screen_area, void *context) {
+  reposition(final_unobstructed_screen_area);
 }
 
 static void in_received_handler(DictionaryIterator *rec, void *context) {
@@ -149,6 +184,10 @@ static void main_window_unload(Window *window) {
 }
 
 static void init() {
+  UnobstructedAreaHandlers uahandlers = {
+    .will_change = unobstructedAreaWillChange
+  };
+
   s_main_window = window_create();
   window_set_window_handlers(s_main_window, (WindowHandlers) {
     .load = main_window_load,
@@ -164,6 +203,8 @@ static void init() {
   app_message_register_inbox_received(in_received_handler);
   app_message_register_inbox_dropped(in_dropped_handler);
   app_message_open(256, 64);
+  
+  unobstructed_area_service_subscribe(uahandlers, NULL);
   
   // Prevent starting blank
   time_t now = time(NULL);
